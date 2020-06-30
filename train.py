@@ -180,22 +180,22 @@ def adjust_learning_rate(optimizer, epoch):
 if not os.path.exists(logname) and not args.test:
     with open(logname, 'w') as logfile:
         logwriter = csv.writer(logfile, delimiter=',')
-        logwriter.writerow(['epoch', 'train loss', 'reg loss', 'train acc',
+        logwriter.writerow(['epoch', 'train loss', 'train acc',
                             'test loss', 'test acc'])
 
 if not args.test:
     for epoch in range(start_epoch, args.n_epochs):
-        train_loss, reg_loss, train_acc = train(epoch)
+        train_loss, train_acc = train(epoch)
         test_loss, test_acc = test(epoch)
         adjust_learning_rate(optimizer, epoch)
         with open(logname, 'a') as logfile:
             logwriter = csv.writer(logfile, delimiter=',')
-            logwriter.writerow([epoch, train_loss, reg_loss, train_acc, test_loss,
+            logwriter.writerow([epoch, train_loss, train_acc, test_loss,
                                 test_acc])
 else:
     for k in [1, 5]:
         test_loss, test_acc = test(1, update=False, topk=(k,))
-        train_loss, reg_loss, train_acc = train(1, update=False, topk=(k,))
+        train_loss, train_acc = train(1, update=False, topk=(k,))
         print("Top{} Train Acc={}".format(k, np.mean(train_acc)))
         print("Top{} Test Acc={}".format(k, np.mean(test_acc)))
 
