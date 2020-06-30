@@ -10,3 +10,7 @@ The following table shows the mean test errors w/ and w/o density-fixing regular
 |--------------------------------------|-------------|-------------|
 | ResNet-18                            | 15.52%      |             |
 | ResNet-18 + density fixing (gamma=1) | 15.49%      |             |
+
+
+# Acknowledgement
+The CIFAR-10 reimplementation of density-fixing is adapted from the [pytorch-cifar](https://github.com/kuangliu/pytorch-cifar) repository by [kuangliu](https://github.com/kuangliu).
