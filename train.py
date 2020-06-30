@@ -141,7 +141,7 @@ def test(epoch, update=True, topk=(1,)):
 
         acc = np.mean(accuracies)
 
-        progress_bar(batch_idx, len(testloader),
+        progress_bar(i, len(testloader),
                      'Loss: %.3f | Acc: %.3f%%'
                      % (test_loss/(i+1), acc))
     if update:
