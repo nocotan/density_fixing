@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+import csv
 import argparse
 import warnings
 import numpy as np
@@ -9,7 +10,7 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 
-import models
+from models.resnet import ResNet18
 from utils import progress_bar
 from utils import accuracy
 warnings.simplefilter('ignore')
@@ -19,8 +20,7 @@ parser.add_argument("--dataset", type=str, default="cifar10")
 parser.add_argument("--test", action="store_true", default=False)
 parser.add_argument("--gamma", type=float, default=0.1, help="density-fixing parameter")
 parser.add_argument("--lr", type=float, default=0.1, help="learning rate")
-parser.add_argument("--resume", action="store_true", help="resume from checkpoint")
-parser.add_argument("--model", type=str, default="resnet18", help="model type (default: resnet18)")
+parser.add_argument("--resume", action="store_true", default=False, help="resume from checkpoint")
 parser.add_argument("--name", type=str, default="0", help="name of run")
 parser.add_argument("--seed", default=0, type=int, help="random seed")
 parser.add_argument("--batch_size", type=int, default=64, help="batch size")
@@ -30,9 +30,17 @@ args = parser.parse_args()
 
 # check gpu
 if torch.cuda.is_available():
+    print("available gpu..")
     device = torch.device("cuda:0")
 else:
+    print("use cpu..")
     device = torch.device("cpu")
+
+best_acc = 0  # best test accuracy
+start_epoch = 0  # start from epoch 0 or last checkpoint epoch
+
+if args.seed != 0:
+    torch.manual_seed(args.seed)
 
 # preparing data
 print("==> Preparing data...")
@@ -53,8 +61,8 @@ elif args.dataset == "cifar100":
 else:
     raise NotImplementedError
 
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
-testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=8)
+testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=8)
 
 if args.resume:
     # Load checkpoint
@@ -70,10 +78,13 @@ if args.resume:
     torch.set_rng_state(rng_state)
 else:
     print("==> Building model..")
-    net = models.resnet.ResNet18(n_classes=n_classes)
+    net = ResNet18(n_classes=n_classes)
 
 if not os.path.isdir("results"):
     os.mkdir("results")
+
+logname = ('results/log_' + net.__class__.__name__ + '_' + args.name + '_'
+           + str(args.seed) + '.csv')
 
 net = net.to(device)
 criterion = nn.CrossEntropyLoss()
@@ -111,7 +122,7 @@ def train(epoch, update=True, topk=(1,)):
                      'Loss: %.3f | Acc: %.3f%%'
                      % (train_loss/(i+1), np.mean(accuracies)))
 
-        return (train_loss/i, accuracies)
+    return (train_loss/i, accuracies)
 
 
 def test(epoch, update=True, topk=(1,)):
@@ -166,7 +177,6 @@ def adjust_learning_rate(optimizer, epoch):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
-
 if not os.path.exists(logname) and not args.test:
     with open(logname, 'w') as logfile:
         logwriter = csv.writer(logfile, delimiter=',')
@@ -174,7 +184,7 @@ if not os.path.exists(logname) and not args.test:
                             'test loss', 'test acc'])
 
 if not args.test:
-    for epoch in range(start_epoch, args.epoch):
+    for epoch in range(start_epoch, args.n_epochs):
         train_loss, reg_loss, train_acc = train(epoch)
         test_loss, test_acc = test(epoch)
         adjust_learning_rate(optimizer, epoch)
@@ -186,8 +196,8 @@ else:
     for k in [1, 5]:
         test_loss, test_acc = test(1, update=False, topk=(k,))
         train_loss, reg_loss, train_acc = train(1, update=False, topk=(k,))
-        print("Top{} Train Acc=".format(k, np.mean(train_acc)))
-        print("Top{} Test Acc=".format(k, np.mean(test_acc)))
+        print("Top{} Train Acc={}".format(k, np.mean(train_acc)))
+        print("Top{} Test Acc={}".format(k, np.mean(test_acc)))
 
     print("train_loss=", train_loss)
     print("test_loss=", test_loss)
