@@ -8,8 +8,8 @@ The following table shows the mean test errors w/ and w/o density-fixing regular
 
 | Model                                | Top 1 Error | Top 5 Error |
 |--------------------------------------|-------------|-------------|
-| ResNet-18                            | 15.52%      |             |
-| ResNet-18 + density fixing (gamma=1) | 15.49%      |             |
+| ResNet-18                            | 12.72%      | 0.812%      |
+| ResNet-18 + density fixing (gamma=1) | 12.23%      | 0.779%      |
 
 ![fig:supervised_cifar10](figs/supervised_cifar10.png "Figure. Test error evolution for the best baseline model (ResNet-18) and density-fixing.")
 
