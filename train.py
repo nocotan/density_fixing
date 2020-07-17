@@ -126,7 +126,7 @@ def train(epoch, update=True, topk=(1,)):
                      'Loss: %.3f | Acc: %.3f%%'
                      % (train_loss/(i+1), np.mean(accuracies)))
 
-    return (train_loss/i, accuracies)
+    return (train_loss/i, np.mean(accuracies))
 
 
 def test(epoch, update=True, topk=(1,)):
@@ -153,7 +153,7 @@ def test(epoch, update=True, topk=(1,)):
             checkpoint(acc, epoch)
             best_acc = acc
 
-    return (test_loss/i, accuracies)
+    return (test_loss/i, np.mean(accuracies))
 
 
 def checkpoint(acc, epoch):
@@ -200,8 +200,8 @@ else:
     for k in [1, 5]:
         test_loss, test_acc = test(1, update=False, topk=(k,))
         train_loss, train_acc = train(1, update=False, topk=(k,))
-        print("Top{} Train Acc={}".format(k, np.mean(train_acc)))
-        print("Top{} Test Acc={}".format(k, np.mean(test_acc)))
+        print("Top{} Train Acc={}".format(k, train_acc))
+        print("Top{} Test Acc={}".format(k, test_acc))
 
     print("train_loss=", train_loss)
     print("test_loss=", test_loss)
