@@ -57,7 +57,11 @@ if args.dataset == "cifar10":
 elif args.dataset == "cifar100":
     n_classes = 100
     trainset = datasets.CIFAR100(root="~/data", train=True, download=True, transform=transform)
-    testset = datasets.CIFAR100(root="~/data", train=True, download=True, transform=transform)
+    testset = datasets.CIFAR100(root="~/data", train=False, download=True, transform=transform)
+elif args.dataset = "imagenet":
+    n_classes = 1000
+    trainset = datasets.ImageNet(root="~/data", train=True, download=False, transform=transform)
+    testset = datasets.ImageNet(root="~/data", train=False, download=False, transform=transform)
 else:
     raise NotImplementedError
 
